@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<html>
+    <head>
+        <title>Corferias 3D</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <script src="../../Build/Cesium/Cesium.js"></script>
+        <style>
+            @import "../../Build/Cesium/Widgets/widgets.css";
+        </style>
+    </head>
+    <body>
+        <div id="cesiumContainer"></div>
+        <div id="toolbar"></div>
+        <script>
+
+            var visor = new Cesium.Viewer('cesiumContainer');
+            var matrizColores = {};
+
+            agregarGeojson('madelenaKC.geojson', true);
+           
+            function agregarGeojson(archivo,zoom) {
+
+                var miDataSource = new Cesium.GeoJsonDataSource(); //los 6 poligonod
+                var promesa = miDataSource.load(archivo); 
+				//promesa --> Try Catch
+
+                promesa.then(function (miDataSource) { //Si promesa es verdadero, ejecuta función callback. (Funciones que actúan como argumentos. Estas funciones no tienen nombre)
+                    visor.dataSources.add(miDataSource); //Al datasource agregarle todos los objetos de corferias.geojson 
+                    if(zoom==true){
+                    visor.zoomTo(miDataSource);
+                    }
+                    var entidades = miDataSource.entities.values; //entidades: arreglo de poligonos
+
+
+                    for (var i = 0; i < entidades.length; i++) { //los lee en la forma en que fueron creados
+                        var miEntidad = entidades[i];
+                        var propietario = miEntidad.properties.Propietario;
+						var cedula = miEntidad.properties.Cedula;
+                        var altura = miEntidad.properties.Altura;
+                        var color = matrizColores[propietario];
+						
+						
+                        if (!color) {
+                            color = Cesium.Color.fromRandom({
+                                alpha: 0.5 //transparencia
+                            });
+
+                            matrizColores[propietario] = color;
+                        }
+
+                        miEntidad.polygon.material = "fotoKMC.jpg";//se pueden colocar imágenes 
+                        miEntidad.polygon.outline = true;
+
+                        var posicion = miEntidad.polygon.hierarchy.getValue().positions[0];
+                        miEntidad.polygon.height = -100;
+                        miEntidad.polygon.extrudedHeight = miEntidad.properties.Altura;
+                    }
+
+
+                }).otherwise(function (error) {
+                    console.error(error);
+                    console.error('No se cumplió la promesa!!');
+                });
+
+
+            }
+            
+           
+
+        </script>
+    </body>
+</html>
